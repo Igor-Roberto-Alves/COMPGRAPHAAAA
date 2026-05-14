@@ -17,7 +17,7 @@ class Triangle(Obj):
         self.vertex_normals = vertex_normals
         self.device = device
 
-        # normal da face (fallback)
+        # normal da face 
         cross = np.cross(
             list_vertex[0] - list_vertex[2], list_vertex[1] - list_vertex[2]
         )
@@ -34,22 +34,22 @@ class Triangle(Obj):
         v3 = torch.tensor(self.list_vertex[2], device=device).float()
         N_tensor = torch.tensor(self.N, device=device).float()
 
-        # 1. Interseção Raio-Plano
+        # interseção do raio com o plano
         denominator = D @ N_tensor
 
         near_zero = torch.abs(denominator) < 1e-6
 
         numerator = (v1 - O) @ N_tensor
-        T = numerator / (denominator + 1e-10)  # Estabilidade numérica
+        T = numerator / (denominator + 1e-10)  # para estabilidade numerica
 
-        # 2. Coordenadas Baricêntricas
+        #coordenadas baricentricas
         Points = O + T.unsqueeze(1) * D
 
         edge1 = v2 - v1
         edge2 = v3 - v1
         w = Points - v1
 
-        # Usando torch.sum(... dim=1) para garantir compatibilidade com o batch de raios
+        
         d00 = torch.dot(edge1, edge1)
         d01 = torch.dot(edge1, edge2)
         d11 = torch.dot(edge2, edge2)

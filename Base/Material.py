@@ -26,8 +26,7 @@ class SimpleMaterial:
         device = hit_record.point.device
         N = hit_record.point.shape[0]
 
-        # FIX: Garantir que a luz ambiente e as cores sejam Tensores no mesmo device
-        # Use as_tensor ou clone().detach() para não criar cópias inúteis
+        # Use as_tensor ou clone().detach() para não criar cópias inuteis
         amb_light_tensor = torch.as_tensor(
             scene.ambient_light, device=device, dtype=torch.float32
         )
@@ -37,18 +36,18 @@ class SimpleMaterial:
         spec_color_tensor = torch.as_tensor(
             self.spec_color, device=device, dtype=torch.float32
         )
-        # Pegue a posição da câmera sem criar um novo tensor do zero
+        #pegue a posição da camera sem criar um novo tensor do zero
         cam_eye_tensor = scene.camera.eye.clone().detach().to(device)
-        # Agora a multiplicação funciona corretamente (elemento a elemento)
+        #agora a multiplicação funciona corretamente
         total_color = amb_light_tensor * self.amb_coeff
 
-        # Garante que total_color tenha o formato (N, 3)
+        #garante que total_color tenha o formato (N, 3)
         if total_color.dim() == 1:
             total_color = total_color.unsqueeze(0).expand(N, 3).clone()
         else:
             total_color = total_color.clone()
 
-        # Componente Especular (Phong)
+        #componente especular (Phong)
         view_dir = cam_eye_tensor - hit_record.point
         view_dir = view_dir / torch.linalg.norm(view_dir, dim=1, keepdim=True)
 
@@ -61,7 +60,7 @@ class SimpleMaterial:
                 light.color, device=device, dtype=torch.float32
             )
 
-            # Vetores da Luz
+            #vetores da luz
             light_vec = light_pos_tensor - hit_record.point
             dist = torch.linalg.norm(light_vec, dim=1, keepdim=True)
             light_dir = light_vec / dist
@@ -72,27 +71,27 @@ class SimpleMaterial:
             shadow_rays = Ray(shadow_ray_origin, light_dir)
 
             shadow_record = scene.hit(shadow_rays)
-            # Se ele for (N), o .view(-1, 1) o transforma em (N, 1)
+            #se ele for (N) o .view(-1, 1) o transforma em (N, 1)
             shadow_hit_mask = shadow_record.hit_mask.view(-1, 1)
 
-            # 2. Garanta que o t (tempo de interseção) seja (N, 1)
+            #garanta que o t seja (N, 1)
             shadow_t = shadow_record.t.view(-1, 1)
 
-            # 3. Agora a comparação é segura, pois todos são (N, 1)
-            # Ponto visível se: Não bateu em nada OU o que bateu está atrás da luz
+            #agora a comparação é segura, pois todos são (N, 1)
+            #ponto visível se não bateu em nada ou o que bateu está atrás da luz
             visible_mask = (shadow_hit_mask == 0) | (shadow_t >= (dist - epsilon))
 
-            # 4. Converte para float (N, 1) - o unsqueeze não é mais necessário se já for (N, 1)
+            #converte para float (N, 1) o unsqueeze não é mais necessário se já for (N, 1)
             vis = visible_mask.float()
 
-            # Componente Difusa
+            # componente difusa
             dot_diff = torch.sum(hit_record.normal * light_dir, dim=1, keepdim=True)
             diff_intensity = torch.clamp(dot_diff, min=0)
             diff_contribution = (diff_color_tensor * light_color_tensor) * (
                 self.diff_coeff * diff_intensity
             )
 
-            # Componente Especular (Phong)
+            # componente especular
             dot_nl = torch.sum(hit_record.normal * light_dir, dim=1, keepdim=True)
             reflect_dir = (2 * dot_nl * hit_record.normal) - light_dir
             reflect_dir = reflect_dir / torch.linalg.norm(
@@ -105,7 +104,7 @@ class SimpleMaterial:
                 self.spec_coeff * spec_intensity
             )
 
-            # Adiciona a contribuição desta luz ao total
+            # adiciona a contribuição desta luz ao total
             total_color += (
                 vis * (diff_contribution + spec_contribution) * light.intensity
             )
@@ -113,19 +112,4 @@ class SimpleMaterial:
         return total_color
 
 
-"""
-epsilon = 1e-4
-shadow_ray_origin = hit_record.point + hit_record.normal * epsilon
 
-
-shadow_rays = Ray(shadow_ray_origin, light_dir)
-
-
-shadow_record = scene.hit(shadow_rays)
-
-
-visible_mask = (shadow_record.hit_mask == 0) | (shadow_record.t >= dist - epsilon)
-
-vis = visible_mask.float().unsqueeze(1)
-
-"""

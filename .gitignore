@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes Virtuais (Venv)
+.venv/
+venv/
+ENV/
+env/
+
+# Variáveis de Ambiente (Segurança!)
+.env
+.flaskenv
+
+# Distribuição / Pacotes
+dist/
+build/
+*.egg-info/
+
+# Logs e Bancos de Dados locais
+*.log
+*.sqlite3

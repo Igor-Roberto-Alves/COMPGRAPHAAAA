@@ -6,7 +6,7 @@ from Primitives.base import HitRecord
 from Primitives.Triangle import Triangle
 
 
-# Uma classe de luz simples caso você não tenha importado uma ainda
+# Classe simples de luz pontual para o cenário de teste
 class PointLight:
     def __init__(self, pos, color, intensity):
         self.pos = pos
@@ -24,7 +24,7 @@ class Scene:
         self.background = [0.1, 0.1, 0.15]
         self.ambient_light = [0.2, 0.2, 0.2]
 
-        # 1. Configuração da Câmera (Olhando para o centro [0,0,0] de uma distância Z=4)
+        # Configuração da Câmera
         self.camera = Camera(
             eye=[0.0, 0.0, 4.0],
             look_at=[0.0, 0.0, 0.0],
@@ -34,16 +34,16 @@ class Scene:
             img_height=600,
         )
 
-        # 2. Adicionando Luz (Cima e à direita)
+        # Adicionando Luz
         self.lights = [
             PointLight(pos=[2.0, 3.0, 2.0], color=[1.0, 1.0, 1.0], intensity=1.0)
         ]
 
-        # 3. Criando o Material (Triângulo Vermelho Brilhante)
+        # Criando o Material
         material_triangulo = SimpleMaterial(
             ambient_coefficient=1.0,
             diffuse_coefficient=0.8,
-            diffuse_color=[1.0, 0.2, 0.2],  # Cor Vermelha
+            diffuse_color=[1.0, 0.2, 0.2],
             specular_coefficient=0.8,
             specular_color=[1.0, 1.0, 1.0],
             specular_shininess=64,
@@ -51,16 +51,14 @@ class Scene:
         )
         self.materials = [material_triangulo]
 
-        # 4. Construindo a Geometria (Um Triângulo Centralizado)
-        # Usamos np.array porque o seu __init__ do Triangle espera fazer np.cross
-        v0 = np.array([-0.5, 1.0, 0.0]) * object_size  # Topo
-        v1 = np.array([0, 0, 3.0]) * object_size  # Esquerda inferior
-        v2 = np.array([1.0, -1.0, 0.0]) * object_size  # Direita inferior
+        # Construindo a Geometria
+        v0 = np.array([-0.5, 1.0, 0.0]) * object_size  
+        v1 = np.array([0, 0, 3.0]) * object_size 
+        v2 = np.array([1.0, -1.0, 0.0]) * object_size  
 
         meu_triangulo = Triangle([v0, v1, v2])
         self.objects = [meu_triangulo]
 
-    # O método hit otimizado que consolidamos nas conversas anteriores
     def hit(self, ray):
         N = ray.ori.shape[0]
         device = ray.ori.device
@@ -76,7 +74,6 @@ class Scene:
 
             current_hit = shape.hit(ray)
 
-            # Garante que os tensores estão no mesmo device que os raios
             hit_mask_bool = current_hit.hit_mask.bool().to(device)
             current_t = current_hit.t.to(device)
 
@@ -95,6 +92,4 @@ class Scene:
                 is_closer_xyz, current_hit.normal.to(device), best_normals
             )
 
-        # Importante: Como não passamos materials direto pro hit_rec (não é suportado em tensores),
-        # deixamos None e a classe raster acessa `scene.materials` via o ID da máscara.
         return HitRecord(best_mask, best_t, best_points, best_normals, None)

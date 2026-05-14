@@ -35,7 +35,7 @@ class Camera:
         The arg randomize can be pass for do a anti-aliasing effect
         """
 
-        # Creating a Image
+        # Creating an Image
         j = torch.linspace(0, self.img_width - 1, self.img_width, device=self.device)
         i = torch.linspace(0, self.img_height - 1, self.img_height, device=self.device)
 
@@ -49,7 +49,6 @@ class Camera:
             off_j = 0.5
             off_i = 0.5
 
-        # Transforms
         x_ndc = self.su * (grid_j + off_j) / self.img_width - self.su / 2
         y_ndc = self.sv * (grid_i + off_i) / self.img_height - self.sv / 2
 
@@ -63,7 +62,7 @@ class Camera:
             direction_unorm, dim=1, keepdim=True
         )
 
-        # Pinhole Cam
+        # Pinhole Camera
         origin = self.eye.expand(direction.shape[0], 3)
 
         # Return a Tensor of rays

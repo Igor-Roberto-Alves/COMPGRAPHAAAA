@@ -28,7 +28,7 @@ class Scene:
             up=torch.tensor([0.0, 1.0, 0.0], device=DEVICE),
             fov=45,
             img_width=800,
-            img_height=,
+            img_height=600,
             device=DEVICE,
         )
 
@@ -75,13 +75,13 @@ class Scene:
         N = ray.ori.shape[0]
         device = ray.ori.device
 
-        # 0 será o fundo (vazio)
+        # 0 é o fundo 
         best_t = torch.full((N,), float("inf"), device=device)
         best_mat_id = torch.zeros((N,), dtype=torch.long, device=device)
         best_points = torch.zeros((N, 3), device=device)
         best_normals = torch.zeros((N, 3), device=device)
 
-        # Itera sobre os objetos
+        # Iterando sobre os objetos
         for shape in self.objects:
             current_hit = shape.hit(ray)
             hit_mask_bool = current_hit.hit_mask.bool().to(device)
@@ -91,8 +91,6 @@ class Scene:
 
             best_t = torch.where(is_closer, current_t, best_t)
 
-            # ATENÇÃO: Pegamos o material_id definido no objeto
-            # Usamos +1 para que o ID 0 fique reservado para "nada"
             mat_id_tensor = torch.tensor(
                 shape.material_id, device=device, dtype=torch.long
             )

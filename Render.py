@@ -87,7 +87,7 @@ def main(args):
     chunk_size = args.chunk_size
 
     print(f"\n{'='*70}")
-    print(f"📊 CONFIGURAÇÃO DE RENDERIZAÇÃO:")
+    print(f"CONFIGURAÇÃO DE RENDERIZAÇÃO:")
     print(f"  Total de pixels: {total_pixels}")
     print(f"  Tamanho do chunk: {chunk_size}")
     print(f"  Número de chunks: {(total_pixels + chunk_size - 1) // chunk_size}")
@@ -112,15 +112,15 @@ def main(args):
 
     print("Finalizando renderização...")
 
-    # Clamp cores
+    #Clamp cores
     final_colors = torch.clamp(final_colors, 0.0, 1.0)
 
-    # Redimensionar para imagem
+    #Redimensionando para imagem
     img_height = camera.img_height
     img_width = camera.img_width
     image_tensor = final_colors.view(img_height, img_width, 3)
 
-    # Converter para NumPy e escalar RGB
+    #Convertendo para NumPy e escalar RGB
     image_np = (image_tensor.cpu().numpy() * 255).astype(np.uint8)
 
     # Salvar

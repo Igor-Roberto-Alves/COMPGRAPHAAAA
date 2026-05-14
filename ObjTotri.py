@@ -25,46 +25,43 @@ def ObjToTri(path, device):
                 continue
 
             if parts[0] == "v":
-                # Armazena como array para cálculos, mas converte para tensor no Triangle
                 vertices.append(np.array(list(map(float, parts[1:4]))))
 
             elif parts[0] == "f":
-                # Converte os índices (trata apenas o primeiro valor antes da '/')
+                #converte os índices
                 indices = [int(p.split("/")[0]) - 1 for p in parts[1:]]
 
-                # Se a face tiver 4 vértices (quad), divide em 2 triângulos
+                #se a face tiver 4 vértices divide em 2 triângulos
                 if len(indices) == 3:
                     faces.append(indices)
                 elif len(indices) == 4:
                     faces.append([indices[0], indices[1], indices[2]])
                     faces.append([indices[0], indices[2], indices[3]])
 
-    # 1. Cálculo das Normais dos Vértices
+    #calculo das normais dos vertices
     vertex_normals = defaultdict(lambda: np.zeros(3))
     for f in faces:
         i1, i2, i3 = f
         v1, v2, v3 = vertices[i1], vertices[i2], vertices[i3]
 
-        # Vetor normal da face (sem normalizar ainda para ponderar pela área)
+        #vetor normal da face (sem normalizar ainda para depois ponderar pela área)
         n = np.cross(v2 - v1, v3 - v1)
 
         vertex_normals[i1] += n
         vertex_normals[i2] += n
         vertex_normals[i3] += n
 
-    # Normaliza as normais acumuladas
+    #normaliza as normais acumuladas
     for k in vertex_normals:
         norm = np.linalg.norm(vertex_normals[k])
         if norm > 1e-9:
             vertex_normals[k] /= norm
 
-    # 2. CRIAÇÃO DOS TRIÂNGULOS (CORRIGIDO)
+    # Criando triangulos
     triangles = []
     for f in faces:
         i1, i2, i3 = f
 
-        # BUSCA OS VÉRTICES CORRETOS PARA CADA FACE
-        # O erro anterior era usar v1, v2, v3 globais
         v1_real = vertices[i1]
         v2_real = vertices[i2]
         v3_real = vertices[i3]
